@@ -1,0 +1,37 @@
+name: Validar manifiestos
+
+# Cada cambio (incluidos los commits y PRs del pipeline de la API) se valida antes de que
+# Argo CD lo aplique: si un overlay no compila o no cumple el esquema de Kubernetes, falla aquí.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target:
+          - apps/health-authorizations-api/overlays/dev
+          - apps/health-authorizations-api/overlays/prod
+          - argocd
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar kubeconform
+        run: |
+          curl -sSL https://github.com/yannh/kubeconform/releases/latest/download/kubeconform-linux-amd64.tar.gz | tar xz
+          sudo mv kubeconform /usr/local/bin/
+
+      - name: kustomize build + kubeconform
+        run: |
+          kustomize build ${{ matrix.target }} | kubeconform -strict -summary \
+            -kubernetes-version 1.33.0 \
+            -schema-location default \
+            -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json'
