@@ -8,67 +8,68 @@ kind: Kustomization
 namespace: ars-humano-dev
 
 resources:
-- namespace.yaml
-- ../../base
-- dependencies/postgres.yaml
-- dependencies/rabbitmq.yaml
+  - namespace.yaml
+  - ../../base
+  - dependencies/postgres.yaml
+  - dependencies/rabbitmq.yaml
 
 images:
-- name: health-authorizations-api
-  newName: ghcr.io/zaizo01/ars-humano-api
-  newTag: sha-2e53133
+  # newTag lo actualiza el pipeline de la API en cada push a develop (sha-<commit>).
+  - name: health-authorizations-api
+    newName: ghcr.io/zaizo01/ars-humano-api
+    newTag: sha-2e53133
 
 # SOLO DESARROLLO: credenciales de ejemplo para los contenedores locales del entorno dev.
 # Los entornos reales no guardan secretos en Git (ver overlays/prod/external-secret.yaml).
 secretGenerator:
-- literals:
-  - ConnectionStrings__Database=Host=postgres;Port=5432;Database=health_authorizations;Username=postgres;Password=dev-postgres-password
-  - RabbitMq__ConnectionString=amqp://dev:dev-rabbit-password@rabbitmq:5672
-  - Jwt__SigningKey=dev-only-signing-key-change-me-0123456789abcdef
-  - MediatR__LicenseKey=
-  name: health-authorizations-api
-- literals:
-  - POSTGRES_PASSWORD=dev-postgres-password
-  - RABBITMQ_DEFAULT_USER=dev
-  - RABBITMQ_DEFAULT_PASS=dev-rabbit-password
-  name: dev-dependencies
+  - name: health-authorizations-api
+    literals:
+      - ConnectionStrings__Database=Host=postgres;Port=5432;Database=health_authorizations;Username=postgres;Password=dev-postgres-password
+      - RabbitMq__ConnectionString=amqp://dev:dev-rabbit-password@rabbitmq:5672
+      - Jwt__SigningKey=dev-only-signing-key-change-me-0123456789abcdef
+      - MediatR__LicenseKey=
+  - name: dev-dependencies
+    literals:
+      - POSTGRES_PASSWORD=dev-postgres-password
+      - RABBITMQ_DEFAULT_USER=dev
+      - RABBITMQ_DEFAULT_PASS=dev-rabbit-password
 
 patches:
-- patch: |-
-    - op: replace
-      path: /data/ASPNETCORE_ENVIRONMENT
-      value: Development
-  target:
-    kind: ConfigMap
-    name: health-authorizations-api
-- patch: |-
-    - op: replace
-      path: /spec/replicas
-      value: 1
-  target:
-    kind: Deployment
-    name: health-authorizations-api
-- patch: |-
-    - op: replace
-      path: /spec/minReplicas
-      value: 1
-    - op: replace
-      path: /spec/maxReplicas
-      value: 2
-  target:
-    kind: HorizontalPodAutoscaler
-    name: health-authorizations-api
-- patch: |-
-    - op: replace
-      path: /spec/minAvailable
-      value: 0
-  target:
-    kind: PodDisruptionBudget
-    name: health-authorizations-api
-- patch: |-
-    - op: replace
-      path: /spec/rules/0/host
-      value: api.dev.ars-humano.local
-  target:
-    kind: Ingress
-    name: health-authorizations-api
+  - target:
+      kind: ConfigMap
+      name: health-authorizations-api
+    patch: |-
+      - op: replace
+        path: /data/ASPNETCORE_ENVIRONMENT
+        value: Development
+  - target:
+      kind: Deployment
+      name: health-authorizations-api
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 1
+  - target:
+      kind: HorizontalPodAutoscaler
+      name: health-authorizations-api
+    patch: |-
+      - op: replace
+        path: /spec/minReplicas
+        value: 1
+      - op: replace
+        path: /spec/maxReplicas
+        value: 2
+  - target:
+      kind: PodDisruptionBudget
+      name: health-authorizations-api
+    patch: |-
+      - op: replace
+        path: /spec/minAvailable
+        value: 0
+  - target:
+      kind: Ingress
+      name: health-authorizations-api
+    patch: |-
+      - op: replace
+        path: /spec/rules/0/host
+        value: api.dev.ars-humano.local
