@@ -1,0 +1,18 @@
+# Proyecto de Argo CD: limita qué repositorio puede desplegar y en qué namespaces.
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: ars-humano
+  namespace: argocd
+spec:
+  description: Servicios de autorizaciones de salud
+  sourceRepos:
+    - https://github.com/zaizo01/ars-humano-gitops.git
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: ars-humano-dev
+    - server: https://kubernetes.default.svc
+      namespace: ars-humano-prod
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace

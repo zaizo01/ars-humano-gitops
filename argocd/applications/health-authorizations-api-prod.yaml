@@ -1,0 +1,19 @@
+# Prod: sincronización MANUAL. El cambio de versión llega por pull request (revisado y aprobado),
+# y alguien con permisos ejecuta el sync en Argo CD. Rollback = revertir el commit en Git.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: health-authorizations-api-prod
+  namespace: argocd
+spec:
+  project: ars-humano
+  source:
+    repoURL: https://github.com/zaizo01/ars-humano-gitops.git
+    targetRevision: main
+    path: apps/health-authorizations-api/overlays/prod
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: ars-humano-prod
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=false

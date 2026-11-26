@@ -1,0 +1,28 @@
+# Dev: sincronización automática. Cada commit del pipeline (nueva imagen) se despliega solo,
+# y si alguien cambia algo a mano en el clúster, Argo CD lo revierte a lo que dice Git (selfHeal).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: health-authorizations-api-dev
+  namespace: argocd
+spec:
+  project: ars-humano
+  source:
+    repoURL: https://github.com/zaizo01/ars-humano-gitops.git
+    targetRevision: main
+    path: apps/health-authorizations-api/overlays/dev
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: ars-humano-dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false
+    retry:
+      limit: 5
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 3m
