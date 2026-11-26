@@ -1,0 +1,17 @@
+# Solo el ingress controller puede llegar a la API. La salida (PostgreSQL, RabbitMQ) no se restringe aquí.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: health-authorizations-api
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: api
+  policyTypes: ["Ingress"]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+      ports:
+        - port: 8080

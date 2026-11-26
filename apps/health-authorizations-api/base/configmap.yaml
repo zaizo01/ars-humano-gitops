@@ -1,0 +1,16 @@
+# Configuración no sensible. Se inyecta como variables de entorno; ASP.NET Core
+# traduce "__" a ":" (Coverage__CoveragePercentage → Coverage:CoveragePercentage).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: health-authorizations-api
+data:
+  ASPNETCORE_ENVIRONMENT: Production
+  # Las migraciones las aplica el Job de migración, nunca las réplicas al arrancar.
+  Database__ApplyMigrationsOnStartup: "false"
+  Coverage__CoveragePercentage: "70"
+  Outbox__PollingInterval: "00:00:05"
+  Outbox__BatchSize: "50"
+  Outbox__MaxAttempts: "10"
+  RabbitMq__Enabled: "true"
+  RabbitMq__Exchange: health-authorizations.events
