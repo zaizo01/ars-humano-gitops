@@ -1,0 +1,38 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Producción: alta disponibilidad, TLS y secretos fuera de Git (External Secrets Operator).
+# PostgreSQL y RabbitMQ son servicios administrados externos al clúster.
+
+namespace: ars-humano-prod
+
+resources:
+  - namespace.yaml
+  - ../../base
+  - external-secret.yaml
+
+images:
+  - name: health-authorizations-api
+    newName: ghcr.io/zaizo01/ars-humano-api
+    newTag: 1.0.0   # se cambia por pull request generado al publicar un tag v* de la API
+
+patches:
+  - path: deployment-patch.yaml
+  - target:
+      kind: HorizontalPodAutoscaler
+      name: health-authorizations-api
+    patch: |-
+      - op: replace
+        path: /spec/minReplicas
+        value: 3
+      - op: replace
+        path: /spec/maxReplicas
+        value: 10
+  - target:
+      kind: PodDisruptionBudget
+      name: health-authorizations-api
+    patch: |-
+      - op: replace
+        path: /spec/minAvailable
+        value: 2
+  - path: ingress-patch.yaml
