@@ -17,7 +17,7 @@ images:
   # newTag lo actualiza el pipeline de la API en cada push a develop (sha-<commit>).
   - name: health-authorizations-api
     newName: ghcr.io/zaizo01/ars-humano-api
-    newTag: sha-2586fea
+    newTag: sha-ec9a948
 
 # SOLO DESARROLLO: credenciales de ejemplo para los contenedores locales del entorno dev.
 # Los entornos reales no guardan secretos en Git (ver overlays/prod/external-secret.yaml).
